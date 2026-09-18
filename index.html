@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Rotación Perroconcha con Math.atan2</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      color: #f8fafc;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      font-size: 2rem;
+      color: #38bdf8;
+      margin-bottom: 8px;
+    }
+
+    p {
+      color: #94a3b8;
+      font-size: 1rem;
+    }
+
+    /* Contenedor principal */
+    .canvas-container {
+      position: relative;
+      background: #1e293b;
+      border: 3px solid #38bdf8;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      overflow: hidden;
+    }
+
+    canvas {
+      display: block;
+      cursor: crosshair;
+    }
+
+    /* Panel informativo */
+    .info-panel {
+      margin-top: 20px;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 15px 25px;
+      display: flex;
+      gap: 20px;
+      font-family: monospace;
+      font-size: 1rem;
+    }
+
+    .info-item span {
+      color: #38bdf8;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Animación Perroconcha</h1>
+    <p>Mueve el ratón alrededor para hacer que la imagen gire apuntando al cursor usando <code>Math.atan2()</code>.</p>
+  </header>
+
+  <div class="canvas-container">
+    <canvas id="canvas" width="500" height="500"></canvas>
+  </div>
+
+  <div class="info-panel">
+    <div class="info-item">Ángulo (Rad): <span id="radVal">0.00</span></div>
+    <div class="info-item">Ángulo (Grados): <span id="degVal">0°</span></div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    const radVal = document.getElementById('radVal');
+    const degVal = document.getElementById('degVal');
+
+    // Cargar la imagen del perroconcha
+    const img = new Image();
+    // Cambia la extensión (.png, .jpg, .webp) según la extensión real de tu archivo en GitHub
+    img.src = 'perroconcha.png'; 
+
+    // Posición central de la imagen en el lienzo
+    const imgPos = {
+      x: canvas.width / 2,
+      y: canvas.height / 2,
+      width: 180,
+      height: 180
+    };
+
+    // Posición del ratón
+    let mouse = { x: canvas.width / 2, y: canvas.height / 2 };
+
+    // Escuchar el movimiento del mouse
+    window.addEventListener('mousemove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      mouse.x = e.clientX - rect.left;
+      mouse.y = e.clientY - rect.top;
+    });
+
+    function render() {
+      // Limpiar lienzo
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Calcular diferencias de posición entre el centro de la imagen y el mouse
+      const dx = mouse.x - imgPos.x;
+      const dy = mouse.y - imgPos.y;
+
+      // *** USO DE MATH.ATAN2 ***
+      // Obtiene el ángulo en radianes hacia la posición del mouse
+      const angle = Math.atan2(dy, dx);
+
+      // Dibujar línea guía desde la imagen hacia el mouse
+      ctx.beginPath();
+      ctx.moveTo(imgPos.x, imgPos.y);
+      ctx.lineTo(mouse.x, mouse.y);
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)';
+      ctx.setLineDash([5, 5]);
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Guardar el estado del contexto antes de transformar
+      ctx.save();
+
+      // Trasladar el origen al centro de la imagen para que gire sobre su eje
+      ctx.translate(imgPos.x, imgPos.y);
+
+      // Aplicar la rotación obtenida con Math.atan2
+      // (Si tu imagen apunta originalmente hacia arriba, añade o resta Math.PI/2)
+      ctx.rotate(angle);
+
+      // Dibujar la imagen centrada en el origen trasladado
+      if (img.complete && img.naturalWidth !== 0) {
+        ctx.drawImage(
+          img, 
+          -imgPos.width / 2, 
+          -imgPos.height / 2, 
+          imgPos.width, 
+          imgPos.height
+        );
+      } else {
+        // Mensaje en caso de que la imagen aún esté cargando o el nombre de archivo difiera
+        ctx.fillStyle = '#f8fafc';
+        ctx.textAlign = 'center';
+        ctx.fillText('Cargando imagen...', 0, 0);
+      }
+
+      // Restaurar el contexto original
+      ctx.restore();
+
+      // Mostrar valores del ángulo en la interfaz
+      radVal.textContent = angle.toFixed(2);
+      degVal.textContent = Math.round(angle * (180 / Math.PI)) + '°';
+
+      requestAnimationFrame(render);
+    }
+
+    img.onload = () => {
+      render();
+    };
+
+    // Iniciar renderizado
+    render();
+  </script>
+</body>
+</html>
