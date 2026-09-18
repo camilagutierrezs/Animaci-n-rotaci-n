@@ -96,20 +96,29 @@
     const radVal = document.getElementById('radVal');
     const degVal = document.getElementById('degVal');
 
-    // Cargar la imagen del perroconcha
+    // Cargar la imagen del perroconcha en formato .jpg
     const img = new Image();
-    // Cambia la extensión (.png, .jpg, .webp) según la extensión real de tu archivo en GitHub
-    img.src = 'perroconcha.png'; 
+    img.src = 'perroconcha.jpg';
+
+    // Respaldos automáticos en caso de variaciones en la extensión o nombre
+    img.onerror = () => {
+      // Si falla .jpg intenta .JPG (por temas de mayúsculas en GitHub)
+      if (img.src.endsWith('perroconcha.jpg')) {
+        img.src = 'perroconcha.JPG';
+      } else if (img.src.endsWith('perroconcha.JPG')) {
+        img.src = 'perroconcha.jpeg';
+      }
+    };
 
     // Posición central de la imagen en el lienzo
     const imgPos = {
       x: canvas.width / 2,
       y: canvas.height / 2,
-      width: 180,
-      height: 180
+      width: 200,
+      height: 200
     };
 
-    // Posición del ratón
+    // Posición inicial del ratón
     let mouse = { x: canvas.width / 2, y: canvas.height / 2 };
 
     // Escuchar el movimiento del mouse
@@ -128,10 +137,10 @@
       const dy = mouse.y - imgPos.y;
 
       // *** USO DE MATH.ATAN2 ***
-      // Obtiene el ángulo en radianes hacia la posición del mouse
+      // Obtiene el ángulo en radianes apuntando directamente hacia el cursor
       const angle = Math.atan2(dy, dx);
 
-      // Dibujar línea guía desde la imagen hacia el mouse
+      // Dibujar línea guía tenue desde la imagen hacia el mouse
       ctx.beginPath();
       ctx.moveTo(imgPos.x, imgPos.y);
       ctx.lineTo(mouse.x, mouse.y);
@@ -144,14 +153,13 @@
       // Guardar el estado del contexto antes de transformar
       ctx.save();
 
-      // Trasladar el origen al centro de la imagen para que gire sobre su eje
+      // Trasladar el origen al centro de la imagen para que gire sobre su propio centro
       ctx.translate(imgPos.x, imgPos.y);
 
-      // Aplicar la rotación obtenida con Math.atan2
-      // (Si tu imagen apunta originalmente hacia arriba, añade o resta Math.PI/2)
+      // Aplicar la rotación del ángulo calculado con Math.atan2
       ctx.rotate(angle);
 
-      // Dibujar la imagen centrada en el origen trasladado
+      // Dibujar la imagen centrada
       if (img.complete && img.naturalWidth !== 0) {
         ctx.drawImage(
           img, 
@@ -161,16 +169,17 @@
           imgPos.height
         );
       } else {
-        // Mensaje en caso de que la imagen aún esté cargando o el nombre de archivo difiera
-        ctx.fillStyle = '#f8fafc';
+        // Mensaje indicador en caso de carga pendiente
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '16px sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText('Cargando imagen...', 0, 0);
+        ctx.fillText('Cargando perroconcha.jpg...', 0, 0);
       }
 
       // Restaurar el contexto original
       ctx.restore();
 
-      // Mostrar valores del ángulo en la interfaz
+      // Mostrar valores del ángulo en pantalla
       radVal.textContent = angle.toFixed(2);
       degVal.textContent = Math.round(angle * (180 / Math.PI)) + '°';
 
@@ -181,7 +190,7 @@
       render();
     };
 
-    // Iniciar renderizado
+    // Iniciar bucle de renderizado
     render();
   </script>
 </body>
